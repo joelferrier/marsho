@@ -18,5 +18,9 @@ func init() {
 				Version:   Version,
 			}, nil
 		},
+
+		"list": func() (cli.Command, error) {
+			return &command.ListCommand{}, nil
+		},
 	}
 }
