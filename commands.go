@@ -19,6 +19,10 @@ func init() {
 			}, nil
 		},
 
+		"fetch": func() (cli.Command, error) {
+			return &command.FetchCommand{}, nil
+		},
+
 		"find": func() (cli.Command, error) {
 			return &command.FindCommand{}, nil
 		},
