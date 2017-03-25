@@ -19,6 +19,10 @@ func init() {
 			}, nil
 		},
 
+		"find": func() (cli.Command, error) {
+			return &command.FindCommand{}, nil
+		},
+
 		"list": func() (cli.Command, error) {
 			return &command.ListCommand{}, nil
 		},
