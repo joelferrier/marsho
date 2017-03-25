@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modules>
+  <module type="lime">
+    <name>lime-4.2.0-17-generic.ko</name>
+    <arch>x86_64</arch>
+    <checksum>8fd9d9c765bac68763d4741d4726e9b120bffe1aaa7df7949aa94b37f7a6b6f8</checksum>
+    <version>4.2.0-17-generic</version>
+    <packager>lime-compiler</packager>
+    <location href="modules/lime-4.2.0-17-generic.ko"/>
+    <signature href="modules/lime-4.2.0-17-generic.ko.sig"/>
+    <platform>linux</platform>
+  </module>
+</modules>
