@@ -14,11 +14,12 @@ import (
 )
 
 type Repository struct {
-	BaseUrl     string
-	metaDir     string
-	repoMeta    string
-	repoMetaSig string
-	signingKey  string
+	BaseUrl       string
+	SkipGPGVerify bool
+	metaDir       string
+	repoMeta      string
+	repoMetaSig   string
+	signingKey    string
 }
 
 type RepoMetadata struct {
@@ -53,6 +54,7 @@ func repoMetadata(data []byte) RepoMetadata {
 func DefaultRepository() Repository {
 	return Repository{
 		"https://threatresponse-lime-modules.s3.amazonaws.com/",
+		false,
 		"repodata/",
 		"repomd.xml",
 		"repomd.xml.sig",
@@ -136,54 +138,54 @@ func (r *Repository) metadata() (RepoMetadata, error) {
 	defer resp.Body.Close()
 	rawMetadata, err := ioutil.ReadAll(resp.Body)
 
-	//fetch repository signing key
-	url = fmt.Sprintf("%s%s", r.BaseUrl, r.signingKey)
-	log.Debug(fmt.Sprintf("fetching repo signing key: %s", url))
-	resp, err = netClient.Get(url)
-	if err != nil {
-		return RepoMetadata{},
-			errors.New(fmt.Sprintf("error fetching repository signing key: %s", err))
-	}
-	defer resp.Body.Close()
+	if r.SkipGPGVerify == false {
+		url = fmt.Sprintf("%s%s", r.BaseUrl, r.signingKey)
+		log.Debug(fmt.Sprintf("fetching repo signing key: %s", url))
+		resp, err = netClient.Get(url)
+		if err != nil {
+			return RepoMetadata{},
+				errors.New(fmt.Sprintf("error fetching repository signing key: %s", err))
+		}
+		defer resp.Body.Close()
 
-	repoKey, err := readKey(resp.Body)
-	if err != nil {
-		return RepoMetadata{},
-			errors.New(fmt.Sprintf("error reading repository signing key: %s", err))
-	}
+		repoKey, err := readKey(resp.Body)
+		if err != nil {
+			return RepoMetadata{},
+				errors.New(fmt.Sprintf("error reading repository signing key: %s", err))
+		}
 
-	// load user's keyring
-	keyring, err := getDefaultKeyring()
-	if err != nil {
-		return RepoMetadata{},
-			errors.New(fmt.Sprintf("error loading user keyring: %s", err))
-	}
+		// load user's keyring
+		keyring, err := getDefaultKeyring()
+		if err != nil {
+			return RepoMetadata{},
+				errors.New(fmt.Sprintf("error loading user keyring: %s", err))
+		}
 
-	//check if repo key is imported to user keychain
-	//TODO: expand info in error message
-	if !keyring.contains(repoKey) {
-		return RepoMetadata{},
-			errors.New("Repository key not imported in user keychain")
-	}
+		//check if repo key is imported to user keychain
+		//TODO: expand info in error message
+		if !keyring.contains(repoKey) {
+			return RepoMetadata{},
+				errors.New("Repository key not imported in user keychain")
+		}
 
-	// fetch detached repository metadata signature
-	url = fmt.Sprintf("%s%s%s", r.BaseUrl, r.metaDir, r.repoMetaSig)
-	log.Debug(fmt.Sprintf("fetching repo metadata signature: %s", url))
-	resp, err = netClient.Get(url)
-	if err != nil {
-		return RepoMetadata{},
-			errors.New(fmt.Sprintf("error fetching repo metadata signature: %s", err))
-	}
-	defer resp.Body.Close()
+		// fetch detached repository metadata signature
+		url = fmt.Sprintf("%s%s%s", r.BaseUrl, r.metaDir, r.repoMetaSig)
+		log.Debug(fmt.Sprintf("fetching repo metadata signature: %s", url))
+		resp, err = netClient.Get(url)
+		if err != nil {
+			return RepoMetadata{},
+				errors.New(fmt.Sprintf("error fetching repo metadata signature: %s", err))
+		}
+		defer resp.Body.Close()
 
-	metadataReader := bytes.NewReader(rawMetadata)
-	signer, err := keyring.verifyDetachedSig(metadataReader, resp.Body)
-	if err != nil {
-		return RepoMetadata{},
-			errors.New(fmt.Sprintf("error verifying repo metadata signature: %s", err))
+		metadataReader := bytes.NewReader(rawMetadata)
+		signer, err := keyring.verifyDetachedSig(metadataReader, resp.Body)
+		if err != nil {
+			return RepoMetadata{},
+				errors.New(fmt.Sprintf("error verifying repo metadata signature: %s", err))
+		}
+		log.Debug(fmt.Sprintf("verified metadata signature against %s", signer.fingerprint()))
 	}
-	log.Debug(fmt.Sprintf("verified metadata signature against %s", signer.fingerprint()))
-
 	return repoMetadata(rawMetadata), nil
 }
 

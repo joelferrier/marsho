@@ -44,6 +44,7 @@ func (c *ListCommand) Run(args []string) int {
 		}
 		repo.BaseUrl = opts.RepoUrl
 	}
+	repo.SkipGPGVerify = opts.NoVerify
 
 	//manifest, err := repository.List(conf)
 	manifest, err := repo.List()
@@ -78,7 +79,7 @@ func listArgs(args []string) (listOpts, error) {
 
 	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
 	repoUrl := listCmd.String("repo", "", "LiME Repository url")
-	noVerify := flag.Bool("gpg-no-verify", false, "Disable GPG Verification")
+	noVerify := listCmd.Bool("gpg-no-verify", false, "Disable GPG Verification")
 
 	listCmd.Parse(args)
 	log.Debug(fmt.Sprintf("parsed repoUrl: %s", *repoUrl))

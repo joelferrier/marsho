@@ -48,6 +48,8 @@ func (c *FetchCommand) Run(args []string) int {
 		}
 		repo.BaseUrl = opts.RepoUrl
 	}
+	repo.SkipGPGVerify = opts.NoVerify
+
 	repo.Get(opts.KernVer)
 
 	return 1
@@ -67,7 +69,7 @@ func fetchArgs(args []string) (fetchOpts, error) {
 
 	fetchCmd := flag.NewFlagSet("fetch", flag.ExitOnError)
 	repoUrl := fetchCmd.String("repo", "", "LiME Repository url")
-	noVerify := flag.Bool("gpg-no-verify", false, "Disable GPG Verification")
+	noVerify := fetchCmd.Bool("gpg-no-verify", false, "Disable GPG Verification")
 
 	fetchCmd.Parse(args)
 	log.Debug(fmt.Sprintf("parsed repoUrl: %s", *repoUrl))

@@ -49,6 +49,7 @@ func (c *FindCommand) Run(args []string) int {
 		}
 		repo.BaseUrl = opts.RepoUrl
 	}
+	repo.SkipGPGVerify = opts.NoVerify
 
 	modules, err := repo.Find(opts.KernVer)
 	if err != nil {
@@ -82,7 +83,7 @@ func findArgs(args []string) (findOpts, error) {
 
 	findCmd := flag.NewFlagSet("find", flag.ExitOnError)
 	repoUrl := findCmd.String("repo", "", "LiME Repository url")
-	noVerify := flag.Bool("gpg-no-verify", false, "Disable GPG Verification")
+	noVerify := findCmd.Bool("gpg-no-verify", false, "Disable GPG Verification")
 
 	findCmd.Parse(args)
 	log.Debug(fmt.Sprintf("parsed repoUrl: %s", *repoUrl))
